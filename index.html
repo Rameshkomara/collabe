@@ -1,188 +1,613 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Graphic Design Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CreativeWorks — Print Design Dashboard</title>
+  <meta name="description" content="Single‑file dashboard for a graphic design studio offering posters, pamphlets & danglers with pricing, orders and profile management." />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Segoe UI", sans-serif;
+    :root{
+      --bg:#0f1220; --panel:#161a2e; --muted:#8b94b0; --text:#e6e9ff; --brand:#6c7cff; --brand-2:#22d3ee; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --chip:#273055;
+      --ring: 0 0 0 3px rgba(108, 124, 255, 0.35);
+      --radius:18px; --radius-sm:12px; --radius-lg:28px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
     }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:radial-gradient(1200px 600px at 120% -10%, rgba(34,211,238,.12), transparent 60%),
+                       radial-gradient(900px 600px at -20% 110%, rgba(108,124,255,.12), transparent 60%), var(--bg);
+         color:var(--text); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif;}
 
-    body {
-      display: flex;
-      height: 100vh;
-      color: #333;
-      background-color: #f4f4f4;
-      transition: background 0.3s, color 0.3s;
+    /* Layout */
+    .app{display:grid; grid-template-columns:280px 1fr; min-height:100vh}
+    aside{background:linear-gradient(180deg, rgba(108,124,255,.12), transparent 25%), var(--panel); padding:24px; position:sticky; top:0; height:100vh; border-right:1px solid rgba(255,255,255,.05)}
+    main{padding:28px;}
+
+    .brand{display:flex; align-items:center; gap:12px; margin-bottom:26px}
+    .logo{width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--brand),var(--brand-2)); box-shadow:var(--shadow)}
+    .logo svg{filter:drop-shadow(0 3px 8px rgba(0,0,0,.3))}
+    .brand h1{font-size:1.25rem; margin:0}
+    .muted{color:var(--muted)}
+
+    nav{display:flex; flex-direction:column; gap:8px}
+    .nav-btn{display:flex; align-items:center; gap:12px; padding:12px 14px; color:var(--text); text-decoration:none; border-radius:12px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02)}
+    .nav-btn[aria-current="page"], .nav-btn:hover{background:rgba(108,124,255,.12); border-color:rgba(108,124,255,.35)}
+
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:var(--chip); color:#c9d1ff; font-size:.8rem}
+
+    /* Topbar */
+    .topbar{display:flex; align-items:center; gap:16px; justify-content:space-between; margin-bottom:22px}
+    .search{flex:1; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:10px 12px}
+    .search input{background:transparent; border:0; outline:0; color:var(--text); width:100%}
+
+    .btn{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.06); color:var(--text); cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-2)); border:0}
+    .btn.ghost{background:transparent}
+    .btn:focus-visible{box-shadow:var(--ring)}
+
+    /* Cards */
+    .grid{display:grid; grid-template-columns:repeat(12, 1fr); gap:18px}
+    .card{grid-column: span 12; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .card .hd{display:flex; align-items:center; justify-content:space-between; padding:18px 18px 0 18px}
+    .card .bd{padding:18px}
+
+    /* Stat cards */
+    .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+    .stat{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); padding:16px; border-radius:14px}
+    .stat .k{font-weight:700; font-size:1.6rem}
+    .stat .s{font-size:.85rem; color:var(--muted)}
+
+    /* Table */
+    table{width:100%; border-collapse:separate; border-spacing:0 10px}
+    thead th{font-size:.9rem; font-weight:600; color:#cfd6ff; text-align:left; padding:0 12px}
+    tbody td{background:rgba(255,255,255,.03); border-top:1px solid rgba(255,255,255,.08); border-bottom:1px solid rgba(255,255,255,.08); padding:14px 12px}
+    tbody tr td:first-child{border-left:1px solid rgba(255,255,255,.08); border-radius:12px 0 0 12px}
+    tbody tr td:last-child{border-right:1px solid rgba(255,255,255,.08); border-radius:0 12px 12px 0}
+    .chip{display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:rgba(108,124,255,.16); border:1px solid rgba(108,124,255,.35)}
+
+    .filters{display:flex; gap:10px; flex-wrap:wrap}
+    select, input[type="number"], input[type="text"], input[type="date"], textarea{background:rgba(255,255,255,.04); color:var(--text); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px; outline:none}
+    label{font-size:.85rem; color:var(--muted)}
+
+    .flex{display:flex; gap:12px; align-items:center}
+    .col{display:flex; flex-direction:column; gap:8px}
+
+    /* Profile */
+    .profile-grid{display:grid; grid-template-columns: 1fr 1fr; gap:18px}
+    .avatar{width:96px; height:96px; border-radius:18px; background:rgba(255,255,255,.06); display:grid; place-items:center; overflow:hidden}
+    .avatar img{width:100%; height:100%; object-fit:cover}
+
+    /* Cart */
+    .cart-wrap{display:grid; grid-template-columns:2fr 1fr; gap:18px}
+    .summary{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px}
+    .summary .row{display:flex; justify-content:space-between; padding:6px 0}
+    .summary .row.total{font-weight:700; border-top:1px dashed rgba(255,255,255,.2); padding-top:10px; margin-top:6px}
+
+    .tag{font-size:.8rem; color:#cfe1ff}
+
+    /* Badges */
+    .b-ok{color:#b6f3c9}
+    .b-warn{color:#ffe5b0}
+
+    /* Footer */
+    footer{margin:28px 0 12px; color:var(--muted); font-size:.85rem}
+
+    /* Responsive */
+    @media (max-width: 1100px){
+      .app{grid-template-columns:1fr}
+      aside{position:relative; height:auto}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .cart-wrap{grid-template-columns:1fr}
+      .profile-grid{grid-template-columns:1fr}
     }
-
-    .dashboard-container {
-      display: flex;
-      width: 100%;
-    }
-
-    .sidebar {
-      width: 220px;
-      background-color: #1e1e2f;
-      color: white;
-      padding: 20px;
-      height: 100vh;
-    }
-
-    .sidebar .logo {
-      font-size: 24px;
-      margin-bottom: 30px;
-    }
-
-    .sidebar nav ul {
-      list-style: none;
-    }
-
-    .sidebar nav ul li {
-      margin-bottom: 15px;
-    }
-
-    .sidebar nav ul li a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .sidebar nav ul li a:hover {
-      text-decoration: underline;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 20px;
-      background-color: #ffffff;
-      overflow-y: auto;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .topbar h1 {
-      font-size: 24px;
-    }
-
-    #theme-toggle {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background-color: #f9f9f9;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-    }
-
-    .card h3 {
-      margin-bottom: 10px;
-    }
-
-    .card button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background-color: #1e1e2f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .card button:hover {
-      background-color: #3a3a5f;
-    }
-
-    /* Dark Theme */
-    body.dark {
-      background-color: #1e1e2f;
-      color: #f1f1f1;
-    }
-
-    body.dark .main-content {
-      background-color: #2b2b40;
-    }
-
-    body.dark .card {
-      background-color: #3a3a5f;
-    }
-
-    body.dark .sidebar {
-      background-color: #12121e;
+    @media (max-width: 640px){
+      .stats{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
-  <div class="dashboard-container">
-    <aside class="sidebar">
-      <h2 class="logo">DesignHub</h2>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 2l3.5 7.5L23 10l-5.5 5.2L18.5 22 12 18.4 5.5 22l1-6.8L1 10l7.5-.5L12 2z" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <h1>CreativeWorks</h1>
+          <div class="muted">Print Design Dashboard</div>
+        </div>
+      </div>
+
       <nav>
-        <ul>
-          <li><a href="#">Dashboard</a></li>
-          <li><a href="#">Projects</a></li>
-          <li><a href="#">Assets</a></li>
-          <li><a href="#">Clients</a></li>
-          <li><a href="#">Settings</a></li>
-        </ul>
+        <a class="nav-btn" href="#dashboard" aria-current="page">🏠 Dashboard</a>
+        <a class="nav-btn" href="#catalog">🧾 Pricing & Catalog</a>
+        <a class="nav-btn" href="#orders">🛒 Orders & Quotes</a>
+        <a class="nav-btn" href="#profile">👤 Studio Profile</a>
+        <a class="nav-btn" href="#help">❓ Help & Policies</a>
       </nav>
+
+      <div style="margin-top:18px">
+        <span class="pill">🇮🇳 Prices in INR (₹) • GST Extra</span>
+      </div>
     </aside>
 
-    <main class="main-content">
-      <header class="topbar">
-        <h1>Welcome, Designer</h1>
-        <button id="theme-toggle">🌙</button>
-      </header>
+    <main>
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="search" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="#cbd5ff" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="globalSearch" placeholder="Search products, sizes, paper stock… (e.g., A3 matte)" />
+        </div>
+        <button class="btn ghost" id="btnDarkToggle" title="Toggle contrast">🌓 Theme</button>
+        <button class="btn primary" id="btnNewQuote">+ New Quote</button>
+      </div>
 
-      <section class="cards">
-        <div class="card">
-          <h3>New Project</h3>
-          <p>Start a fresh design project.</p>
-          <button>Create</button>
+      <!-- Dashboard -->
+      <section id="dashboard" class="card">
+        <div class="hd">
+          <h2>Overview</h2>
+          <span class="tag">This month</span>
         </div>
-        <div class="card">
-          <h3>Design Assets</h3>
-          <p>Access your creative resources.</p>
-          <button>View</button>
-        </div>
-        <div class="card">
-          <h3>Clients</h3>
-          <p>Manage client requests and feedback.</p>
-          <button>Manage</button>
+        <div class="bd stats" id="stats">
+          <div class="stat"><div class="s">Quotes Created</div><div class="k" id="kQuotes">0</div></div>
+          <div class="stat"><div class="s">Orders Confirmed</div><div class="k" id="kOrders">0</div></div>
+          <div class="stat"><div class="s">Revenue (₹)</div><div class="k" id="kRevenue">0</div></div>
+          <div class="stat"><div class="s">Avg. Turnaround</div><div class="k" id="kTAT">2–4 days</div></div>
         </div>
       </section>
+
+      <!-- Catalog & Pricing -->
+      <section id="catalog" class="card">
+        <div class="hd">
+          <h2>Pricing & Catalog</h2>
+          <div class="flex">
+            <div class="filters">
+              <label class="flex">Category
+                <select id="fCategory">
+                  <option value="all">All</option>
+                  <option value="poster">Poster</option>
+                  <option value="pamphlet">Pamphlet</option>
+                  <option value="dangler">Dangler</option>
+                </select>
+              </label>
+              <label class="flex">Paper
+                <select id="fPaper">
+                  <option value="any">Any</option>
+                  <option>Gloss 170 GSM</option>
+                  <option>Matte 170 GSM</option>
+                  <option>Art Card 300 GSM</option>
+                  <option>Bond 90 GSM</option>
+                </select>
+              </label>
+              <label class="flex">Finish
+                <select id="fFinish">
+                  <option value="any">Any</option>
+                  <option>None</option>
+                  <option>Matte Lamination</option>
+                  <option>Gloss Lamination</option>
+                  <option>UV Spot</option>
+                </select>
+              </label>
+            </div>
+            <button class="btn" id="clearFilters">Reset</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div style="overflow:auto">
+            <table aria-describedby="pricing table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Specs</th>
+                  <th>Turnaround</th>
+                  <th>MOQ</th>
+                  <th>Unit Price (₹)</th>
+                  <th>Add</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Orders & Quotes -->
+      <section id="orders" class="card">
+        <div class="hd">
+          <h2>Orders & Quotes</h2>
+          <div class="flex">
+            <button class="btn" id="btnSaveQuote">💾 Save Quote</button>
+            <button class="btn" id="btnDownloadQuote">⬇️ Download Quote (PDF)</button>
+            <button class="btn" id="btnClearCart">🧹 Clear</button>
+          </div>
+        </div>
+        <div class="bd cart-wrap">
+          <div>
+            <h3>Items</h3>
+            <div style="overflow:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Specs</th>
+                    <th>Qty</th>
+                    <th>Rate (₹)</th>
+                    <th>Amount (₹)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="cartRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <aside class="summary">
+            <h3>Summary</h3>
+            <div class="row"><span>Subtotal</span><strong id="sSubtotal">0</strong></div>
+            <div class="row"><span>Design Fee</span><span>
+              <select id="designFee">
+                <option value="0">Included</option>
+                <option value="499">₹499</option>
+                <option value="999">₹999</option>
+                <option value="1499">₹1499</option>
+              </select>
+            </span></div>
+            <div class="row"><span>Discount</span><span><input type="number" id="discount" value="0" min="0" step="1" style="width:100px"> <span class="muted">₹</span></span></div>
+            <div class="row"><span>GST (18%)</span><strong id="sGST">0</strong></div>
+            <div class="row total"><span>Total</span><strong id="sTotal">0</strong></div>
+            <div class="row"><span class="muted">Payment</span>
+              <select id="paymentTerms">
+                <option>50% Advance, 50% on Delivery</option>
+                <option>100% Advance</option>
+                <option>Net 7 Days</option>
+              </select>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section id="profile" class="card">
+        <div class="hd">
+          <h2>Studio Profile</h2>
+          <span class="tag">Used in your quotes & invoices</span>
+        </div>
+        <div class="bd profile-grid">
+          <div class="col">
+            <label>Logo / Owner Photo</label>
+            <div class="avatar" id="avatar"><input id="avatarInput" type="file" accept="image/*" aria-label="Upload logo"/></div>
+          </div>
+          <div class="col">
+            <label>Studio Name</label>
+            <input id="pName" placeholder="CreativeWorks Studio" />
+            <label>Owner</label>
+            <input id="pOwner" placeholder="Ramesh Kumar" />
+          </div>
+          <div class="col">
+            <label>Phone</label>
+            <input id="pPhone" placeholder="+91 98xxxxxx" />
+            <label>Email</label>
+            <input id="pEmail" placeholder="hello@creativeworks.in" />
+          </div>
+          <div class="col">
+            <label>Address</label>
+            <textarea id="pAddr" rows="4" placeholder="Door No, Street, Area, City, Pincode"></textarea>
+          </div>
+          <div class="col">
+            <label>GSTIN (optional)</label>
+            <input id="pGST" placeholder="22AAAAA0000A1Z5" />
+            <label>UPI / Bank Details</label>
+            <input id="pBank" placeholder="upi@bank or A/c, IFSC" />
+          </div>
+          <div class="col">
+            <label>Notes (footer)</label>
+            <textarea id="pNotes" rows="4" placeholder="Thanks for your business! Standard warranty & reprint policy applies." ></textarea>
+            <div>
+              <button class="btn primary" id="btnSaveProfile">Save Profile</button>
+              <button class="btn" id="btnLoadSample">Load Sample</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Help -->
+      <section id="help" class="card">
+        <div class="hd">
+          <h2>Help & Policies</h2>
+        </div>
+        <div class="bd">
+          <ul>
+            <li>Turnaround: Posters/Pamphlets 2–4 working days after proof approval. Danglers 4–6 days.</li>
+            <li>Color: CMYK process printing; slight variance ±5% possible across batches.</li>
+            <li>Artwork: Supply print‑ready PDF (3mm bleed). We can design at additional fee.</li>
+            <li>Delivery: Within city via courier; charges as per actuals. Pickup available.</li>
+            <li>Taxes: 18% GST extra. Prices subject to change based on paper market.</li>
+            <li>Payments: UPI/Bank transfer. Cheque accepted on prior approval.</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer>© <span id="year"></span> CreativeWorks Studio. All rights reserved.</footer>
     </main>
   </div>
 
-  <script>
-    const themeToggle = document.getElementById("theme-toggle");
+  <template id="rowTpl">
+    <tr>
+      <td><strong class="name"></strong><div class="muted sub"></div></td>
+      <td><span class="chip spec"></span></td>
+      <td class="tat"></td>
+      <td class="moq"></td>
+      <td><strong class="price"></strong> <span class="muted small">/ unit</span></td>
+      <td><button class="btn add">Add</button></td>
+    </tr>
+  </template>
 
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  <template id="cartTpl">
+    <tr>
+      <td class="c-name"></td>
+      <td class="c-spec"></td>
+      <td>
+        <input class="qty" type="number" min="1" value="1" style="width:90px">
+      </td>
+      <td class="c-rate"></td>
+      <td class="c-amt"></td>
+      <td><button class="btn ghost remove">✖</button></td>
+    </tr>
+  </template>
+
+  <script>
+    // ---------- Sample Data (Prices in ₹, GST extra) ----------
+    const CATALOG = [
+      // Posters
+      { id:'p-a3-gloss', category:'poster', name:'Poster A3', spec:'297×420mm · Gloss 170 GSM · 4c', paper:'Gloss 170 GSM', finish:'None', moq:10, tat:'2–3 days', price:45 },
+      { id:'p-a2-matte', category:'poster', name:'Poster A2', spec:'420×594mm · Matte 170 GSM · 4c', paper:'Matte 170 GSM', finish:'None', moq:10, tat:'3–4 days', price:110 },
+      { id:'p-a1-matte-lam', category:'poster', name:'Poster A1', spec:'594×841mm · Matte 170 GSM · Matte Lamination', paper:'Matte 170 GSM', finish:'Matte Lamination', moq:5, tat:'3–5 days', price:220 },
+      { id:'p-a0-gloss-lam', category:'poster', name:'Poster A0', spec:'841×1189mm · Gloss 170 GSM · Gloss Lamination', paper:'Gloss 170 GSM', finish:'Gloss Lamination', moq:2, tat:'4–5 days', price:480 },
+
+      // Pamphlets / Flyers
+      { id:'f-a5', category:'pamphlet', name:'Pamphlet A5 (Single‑side)', spec:'148×210mm · Art Card 300 GSM · 4c', paper:'Art Card 300 GSM', finish:'None', moq:100, tat:'2–3 days', price:4.5 },
+      { id:'f-a5-2s', category:'pamphlet', name:'Pamphlet A5 (Double‑side)', spec:'148×210mm · Art Card 300 GSM · 4c both sides', paper:'Art Card 300 GSM', finish:'None', moq:100, tat:'2–3 days', price:6.5 },
+      { id:'f-a4-bond', category:'pamphlet', name:'Flyer A4 (Bond)', spec:'210×297mm · Bond 90 GSM · 4c', paper:'Bond 90 GSM', finish:'None', moq:200, tat:'2–3 days', price:4.2 },
+      { id:'f-trifold', category:'pamphlet', name:'Tri‑Fold Brochure', spec:'A4 → DL · Art Paper 170 GSM · Folded', paper:'Gloss 170 GSM', finish:'Fold', moq:200, tat:'3–4 days', price:9.5 },
+
+      // Danglers
+      { id:'d-6-round', category:'dangler', name:'Dangler Round 6"', spec:'6‑inch · 300 GSM Art Card · 4c + Eyelet + Thread', paper:'Art Card 300 GSM', finish:'None', moq:50, tat:'4–6 days', price:22 },
+      { id:'d-8-round', category:'dangler', name:'Dangler Round 8"', spec:'8‑inch · 300 GSM Art Card · 4c + Eyelet + Thread', paper:'Art Card 300 GSM', finish:'None', moq:50, tat:'4–6 days', price:32 },
+      { id:'d-rect', category:'dangler', name:'Dangler Rect 6×12"', spec:'6×12‑inch · 300 GSM Art Card · 4c + Eyelet + Thread', paper:'Art Card 300 GSM', finish:'None', moq:50, tat:'4–6 days', price:38 },
+
+      // Add‑ons
+      { id:'a-matte-lam', category:'poster', name:'Add‑on: Matte Lamination', spec:'Per poster · Protects & reduces glare', paper:'Any', finish:'Matte Lamination', moq:1, tat:'+1 day', price:15 },
+      { id:'a-uv', category:'poster', name:'Add‑on: UV Spot', spec:'Per poster · Highlight elements', paper:'Any', finish:'UV Spot', moq:1, tat:' +1 day', price:35 }
+    ];
+
+    // ---------- State ----------
+    const state = {
+      cart: JSON.parse(localStorage.getItem('cw.cart')||'[]'),
+      profile: JSON.parse(localStorage.getItem('cw.profile')||'{}')
+    };
+
+    // ---------- Helpers ----------
+    const fmt = n => new Intl.NumberFormat('en-IN', { maximumFractionDigits:2 }).format(Number(n||0));
+    const byId = id => document.getElementById(id);
+
+    function renderCatalog(){
+      const tbody = byId('rows');
+      tbody.innerHTML = '';
+      const q = byId('globalSearch').value.toLowerCase();
+      const c = byId('fCategory').value;
+      const p = byId('fPaper').value;
+      const f = byId('fFinish').value;
+      CATALOG
+        .filter(x => (c==='all'||x.category===c))
+        .filter(x => (p==='any'||x.paper===p))
+        .filter(x => (f==='any'||x.finish===f))
+        .filter(x => x.name.toLowerCase().includes(q) || x.spec.toLowerCase().includes(q))
+        .forEach(item => {
+          const row = byId('rowTpl').content.cloneNode(true);
+          row.querySelector('.name').textContent = item.name;
+          row.querySelector('.sub').textContent = item.category.charAt(0).toUpperCase()+item.category.slice(1);
+          row.querySelector('.spec').textContent = item.spec;
+          row.querySelector('.tat').textContent = item.tat;
+          row.querySelector('.moq').textContent = item.moq;
+          row.querySelector('.price').textContent = fmt(item.price);
+          const btn = row.querySelector('.add');
+          btn.addEventListener('click', () => addToCart(item));
+          tbody.appendChild(row);
+        });
+    }
+
+    function addToCart(item){
+      const existing = state.cart.find(c => c.id===item.id);
+      if(existing){ existing.qty += 1; } else {
+        state.cart.push({ id:item.id, name:item.name, spec:item.spec, rate:item.price, qty: item.moq });
+      }
+      persistCart();
+      renderCart();
+    }
+
+    function removeFromCart(id){
+      state.cart = state.cart.filter(x => x.id!==id);
+      persistCart();
+      renderCart();
+    }
+
+    function persistCart(){ localStorage.setItem('cw.cart', JSON.stringify(state.cart)); }
+
+    function renderCart(){
+      const body = byId('cartRows');
+      body.innerHTML = '';
+      let subtotal = 0;
+      state.cart.forEach(item => {
+        const row = byId('cartTpl').content.cloneNode(true);
+        row.querySelector('.c-name').textContent = item.name;
+        row.querySelector('.c-spec').textContent = item.spec;
+        row.querySelector('.c-rate').textContent = fmt(item.rate);
+        const qty = row.querySelector('.qty');
+        qty.value = item.qty;
+        const amtCell = row.querySelector('.c-amt');
+        function calc(){ item.qty = Math.max(1, Number(qty.value||1)); amtCell.textContent = fmt(item.qty * item.rate); updateSummary(); persistCart(); }
+        qty.addEventListener('input', calc); calc();
+        row.querySelector('.remove').addEventListener('click', () => removeFromCart(item.id));
+        body.appendChild(row);
+        subtotal += item.qty * item.rate;
+      });
+      if(state.cart.length===0){
+        const tr=document.createElement('tr');
+        const td=document.createElement('td'); td.colSpan=6; td.className='muted'; td.style.textAlign='center'; td.textContent='No items yet. Add from Pricing & Catalog.'; tr.appendChild(td); body.appendChild(tr);
+      }
+      updateSummary();
+    }
+
+    function updateSummary(){
+      const subtotal = state.cart.reduce((s, x) => s + x.qty*x.rate, 0);
+      const design = Number(byId('designFee').value||0);
+      const discount = Number(byId('discount').value||0);
+      const taxable = Math.max(0, subtotal + design - discount);
+      const gst = taxable * 0.18;
+      const total = taxable + gst;
+      byId('sSubtotal').textContent = fmt(subtotal);
+      byId('sGST').textContent = fmt(gst);
+      byId('sTotal').textContent = fmt(total);
+      // fake stats
+      byId('kQuotes').textContent = (Number(localStorage.getItem('cw.quotes')||'0'));
+      byId('kOrders').textContent = (Number(localStorage.getItem('cw.orders')||'0'));
+      byId('kRevenue').textContent = fmt(Number(localStorage.getItem('cw.revenue')||'0'));
+    }
+
+    // ---------- Profile ----------
+    function loadProfileIntoUI(){
+      const p = state.profile;
+      byId('pName').value = p.name||'';
+      byId('pOwner').value = p.owner||'';
+      byId('pPhone').value = p.phone||'';
+      byId('pEmail').value = p.email||'';
+      byId('pAddr').value = p.addr||'';
+      byId('pGST').value = p.gst||'';
+      byId('pBank').value = p.bank||'';
+      byId('pNotes').value = p.notes||'';
+      if(p.avatar){
+        const img = new Image(); img.src = p.avatar; img.alt='Avatar';
+        const wrap = byId('avatar'); wrap.innerHTML=''; wrap.appendChild(img);
+      }
+    }
+
+    function saveProfile(){
+      const p = state.profile = {
+        name: byId('pName').value.trim(),
+        owner: byId('pOwner').value.trim(),
+        phone: byId('pPhone').value.trim(),
+        email: byId('pEmail').value.trim(),
+        addr: byId('pAddr').value.trim(),
+        gst: byId('pGST').value.trim(),
+        bank: byId('pBank').value.trim(),
+        notes: byId('pNotes').value.trim(),
+        avatar: state.profile.avatar||null
+      };
+      localStorage.setItem('cw.profile', JSON.stringify(p));
+      alert('Profile saved.');
+    }
+
+    // Avatar upload preview
+    byId('avatarInput').addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () =>{
+        const img = new Image(); img.src = reader.result; img.alt='Avatar';
+        const wrap = byId('avatar'); wrap.innerHTML=''; wrap.appendChild(img);
+        state.profile.avatar = reader.result; localStorage.setItem('cw.profile', JSON.stringify(state.profile));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- Quote Actions ----------
+    function saveQuote(){
+      const profile = JSON.parse(localStorage.getItem('cw.profile')||'{}');
+      const payload = { id: 'Q'+Date.now(), when: new Date().toLocaleString(), items: state.cart, summary:{
+        subtotal: byId('sSubtotal').textContent,
+        gst: byId('sGST').textContent,
+        total: byId('sTotal').textContent,
+        design: byId('designFee').value,
+        discount: byId('discount').value,
+        terms: byId('paymentTerms').value
+      }, profile };
+      let quotes = JSON.parse(localStorage.getItem('cw.quotes.list')||'[]');
+      quotes.push(payload);
+      localStorage.setItem('cw.quotes.list', JSON.stringify(quotes));
+      localStorage.setItem('cw.quotes', String((Number(localStorage.getItem('cw.quotes')||'0'))+1));
+      alert('Quote saved: '+payload.id);
+      updateSummary();
+    }
+
+    function downloadQuote(){
+      const w = window.open('', 'PRINT', 'height=800,width=800');
+      const p = state.profile;
+      const items = state.cart.map(i=>`<tr><td>${i.name}</td><td>${i.spec}</td><td style="text-align:right">${i.qty}</td><td style="text-align:right">₹${fmt(i.rate)}</td><td style="text-align:right">₹${fmt(i.qty*i.rate)}</td></tr>`).join('');
+      w.document.write(`<!doctype html><html><head><title>Quote</title><style>
+        body{font-family:system-ui,Segoe UI,Roboto,Arial; padding:24px}
+        h1{margin:0 0 6px 0}
+        table{width:100%; border-collapse:collapse; margin-top:14px}
+        th,td{border:1px solid #ccc; padding:8px}
+        tfoot td{font-weight:700}
+      </style></head><body>
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <div>
+            <h1>Quotation</h1>
+            <div>${new Date().toLocaleString()}</div>
+            <div>${p.name||'CreativeWorks Studio'}</div>
+            <div>Owner: ${p.owner||'—'} | Phone: ${p.phone||'—'}</div>
+            <div>${p.email||''}</div>
+            <div>${p.addr||''}</div>
+            <div>GSTIN: ${p.gst||'—'} | Bank/UPI: ${p.bank||'—'}</div>
+          </div>
+          ${p.avatar?`<img src="${p.avatar}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid #ddd">`:''}
+        </div>
+        <table>
+          <thead><tr><th>Item</th><th>Specs</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+          <tbody>${items||'<tr><td colspan="5">No items</td></tr>'}</tbody>
+          <tfoot>
+            <tr><td colspan="4" style="text-align:right">Subtotal</td><td>₹${byId('sSubtotal').textContent}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Design Fee</td><td>₹${fmt(byId('designFee').value||0)}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Discount</td><td>₹${fmt(byId('discount').value||0)}</td></tr>
+            <tr><td colspan="4" style="text-align:right">GST (18%)</td><td>₹${byId('sGST').textContent}</td></tr>
+            <tr><td colspan="4" style="text-align:right">Total</td><td>₹${byId('sTotal').textContent}</td></tr>
+          </tfoot>
+        </table>
+        <p><strong>Payment Terms:</strong> ${byId('paymentTerms').value}</p>
+        <p>${p.notes||'Thank you for choosing us.'}</p>
+        <script>window.print();<\/script>
+      </body></html>`);
+      w.document.close();
+      w.focus();
+    }
+
+    // ---------- Events ----------
+    ;['globalSearch','fCategory','fPaper','fFinish'].forEach(id=> byId(id).addEventListener('input', renderCatalog));
+    byId('clearFilters').addEventListener('click', ()=>{ byId('fCategory').value='all'; byId('fPaper').value='any'; byId('fFinish').value='any'; byId('globalSearch').value=''; renderCatalog(); });
+
+    byId('btnNewQuote').addEventListener('click', ()=>{ state.cart=[]; persistCart(); renderCart(); window.location.hash='#orders'; });
+    byId('btnSaveQuote').addEventListener('click', saveQuote);
+    byId('btnDownloadQuote').addEventListener('click', downloadQuote);
+    byId('btnClearCart').addEventListener('click', ()=>{ if(confirm('Clear all items?')){ state.cart=[]; persistCart(); renderCart(); }});
+
+    byId('btnSaveProfile').addEventListener('click', saveProfile);
+    byId('btnLoadSample').addEventListener('click', ()=>{
+      state.profile = {
+        name:'CreativeWorks Studio', owner:'Ramesh Kumar', phone:'+91 98xxxxxx', email:'hello@creativeworks.in',
+        addr:'123, MG Road, Indiranagar, Bengaluru 560038', gst:'29ABCDE1234A1Z5', bank:'creative@upi', notes:'Thanks for your business! Delivery within city. Reprints for print errors only.'
+      }; localStorage.setItem('cw.profile', JSON.stringify(state.profile)); loadProfileIntoUI();
+    });
+
+    byId('btnDarkToggle').addEventListener('click', ()=>{
+      document.body.style.background = getComputedStyle(document.body).background.includes('radial-gradient') ? 'var(--bg)' : 'radial-gradient(1200px 600px at 120% -10%, rgba(34,211,238,.12), transparent 60%),\n                       radial-gradient(900px 600px at -20% 110%, rgba(108,124,255,.12), transparent 60%), var(--bg)';
+    });
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', ()=>{
+      byId('year').textContent = new Date().getFullYear();
+      loadProfileIntoUI();
+      renderCatalog();
+      renderCart();
     });
   </script>
 </body>
